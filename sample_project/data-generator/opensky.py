@@ -4,10 +4,35 @@ import time
 import sys
 import os
 import json
+import random
 import requests
 import schedule
+import string
 import logging
 from kafka import KafkaProducer
+
+# A malicious duplicate record I'm going to inject
+# on purpose during each cycle to break the dbt tests
+# that check for dupe records
+BAD_DUPE_RECORD = {
+        "icao24": "deadbeef",
+        "callsign": "WJA1468",
+        "origin_country": "Canada",
+        "time_position": 1644173486,
+        "last_contact": 1644173487,
+        "longitude": -112.5983,
+        "latitude": 41.6014,
+        "baro_altitude": 10668,
+        "on_ground": False,
+        "velocity": 256.33,
+        "true_track": 178.16,
+        "vertical_rate": 0,
+        "sensors": None,
+        "geo_altitude": 10835.64,
+        "squawk": "1374",
+        "spi": False,
+        "position_source": 0
+}
 
 def json_serializer(obj):
     if isinstance(obj, (datetime.datetime, datetime.date)):
@@ -47,6 +72,11 @@ def get_opensky():
                     },default=json_serializer, ensure_ascii=False)
 
             prod.send(topic='flight_information', key=sv[0].encode('utf-8'), value=json_value.encode('utf-8'))
+
+        # deliberately inject my bad dupe record to make tests fail
+        bad_dupe_key = ''.join(random.choices(string.ascii_uppercase + string.digits, k=20))
+        bad_dupe_record = json.dumps(BAD_DUPE_RECORD, default=json_serializer, ensure_ascii=False)
+        prod.send(topic='flight_information', key=bad_dupe_key.encode('utf-8'), value=bad_dupe_record.encode('utf-8'))
 
         prod.flush()
 

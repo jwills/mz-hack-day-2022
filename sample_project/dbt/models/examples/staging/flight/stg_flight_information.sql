@@ -6,7 +6,7 @@ with light transformations on top of the source.
 */
 
 {{ config(
-    materialized='view'
+    materialized='materializedview'
 ) }}
 
 
@@ -55,3 +55,4 @@ renamed AS (
 )
 
 SELECT * FROM renamed
+WHERE icao24 <> 'deadbeef'
