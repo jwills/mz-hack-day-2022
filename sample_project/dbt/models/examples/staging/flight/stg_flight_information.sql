@@ -55,3 +55,4 @@ renamed AS (
 )
 
 SELECT * FROM renamed
+WHERE icao24 <> 'deadbeef'
