@@ -6,7 +6,7 @@ with light transformations on top of the source.
 */
 
 {{ config(
-    materialized='view'
+    materialized='materializedview'
 ) }}
 
 
